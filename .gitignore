@@ -1,2 +1,6 @@
 /lib
 /result
+*.o
+*.a
+*.gcno
+ut
