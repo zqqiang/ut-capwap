@@ -1,0 +1,33 @@
+{
+    "id": 2915,
+    "url": "/wlan/vap/",
+    "method": "put",
+    "apNetworkOid": 401,
+    "params": [{
+        "captivePortal": "none",
+        "security": "open",
+        "applicationEnabled": "disable",
+        "avEnabled": "disable",
+        "encrypt": "AES",
+        "oid": 1046,
+        "ssid": "zqq-ssid-5",
+        "status": "enable",
+        "botnetEnabled": "disable",
+        "captiveRedirectURL": "",
+        "captiveRedirect": 0,
+        "walled-gardent-address": "",
+        "splashUrl": "",
+        "tag-oids": [],
+        "scheduleTime": "1:ALL|2:ALL|3:ALL|4:ALL|5:ALL|6:ALL|0:ALL",
+        "broadcast-ssid": "enable",
+        "schedule": 1,
+        "webAccess": 0,
+        "captive-category": "clickThrough",
+        "ipsEnabled": "disable",
+        "nat": 0,
+        "local-authentication": "disable",
+        "apply-all": "enable",
+        "bandAvailability": 3,
+        "auth": "radius"
+    }]
+}
