@@ -26,7 +26,7 @@ UT_DIR = src
 CPPFLAGS += -isystem $(GTEST_DIR)/include
 
 # Flags passed to the C++ compiler.
-CXXFLAGS += -g -Wall -Wextra -pthread
+CXXFLAGS += -g -Wall -Wextra -pthread -DCAPWAP
 GCOVFLAGS += -fprofile-arcs -ftest-coverage -fPIC
 
 # All tests produced by this Makefile.  Remember to add new tests you
