@@ -6,7 +6,7 @@
 
 extern "C"
 {
-
+	int cwHapdInit(cwAcThread_t *self);
 }
 
 class IhapdTest : public ::testing::Test
@@ -17,6 +17,7 @@ protected:
 		InitConf();
 		InitMgmt();
 		InitMsg();
+
 		InitHapd();
 	}
 
