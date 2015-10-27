@@ -3,10 +3,14 @@
 #include "hostapd.h"
 #include "ieee802_11.h"
 #include "cwAC.h"
+#include "wtphtree.h"
 
 extern "C"
 {
 	int cwHapdInit(cwAcThread_t *self);
+	int cw_sta_load_chk(account_t account, uint32_t wtpAddr, uint32_t wtpPort,
+	                    uint8_t rId, uint8_t wId, uint8_t *sta_mac, uint8_t mesh_sta, int *band_5G);
+	wtp_hash_t* cwAcAddWtpHashEntry(cwAccountCtx_t *account_ctx, capwap_wtp_t *wtp, int add_to_hash);
 }
 
 class IhapdTest : public ::testing::Test
@@ -17,8 +21,13 @@ protected:
 		InitConf();
 		InitMgmt();
 		InitMsg();
-
 		InitHapd();
+		InitCallback();
+		InitWtpInfo();
+		InitWtpHash();
+		InitSession();
+		InitWtpProfileInfo();
+		InitWlanInfo();
 	}
 
 	virtual void TearDown()	{
@@ -49,6 +58,9 @@ protected:
 		memcpy(hapd.own_addr, dest, sizeof(dest));
 		hapd.splitMac = 1;
 		hapd.conf = &config;
+
+		hapd.wtpAddr = 0xffffffff;
+		hapd.wtpPort = 8888;
 	}
 
 	void InitMgmt() {
@@ -70,6 +82,43 @@ protected:
 		config.max_num_sta = 100;
 	}
 
+	void InitCallback() {
+		cw_hapd_sta_chk = cw_sta_load_chk;
+	}
+
+	void InitSession() {
+		memset(&session, 0, sizeof(session));
+		session.wtpcfg = &wtpInfo;
+		session.wtp_hash_entry = wtpHash;
+	}
+
+	void InitWtpInfo() {
+		memset(&wtpInfo, 0, sizeof(wtpInfo));
+		wtpInfo.wtpprof_cfg = &wtpProfileInfo;
+		wtpInfo.wlan_cfg[0][0] = &wlanInfo;
+	}
+
+	void InitWtpHash() {
+		wtp_hash_tree_init();
+		memset(&context, 0, sizeof(context));
+		memset(&wtp, 0, sizeof(wtp));
+		wtpHash = cwAcAddWtpHashEntry(&context, &wtp, 1);
+		wtpHash->ip = 0xffffffff;
+		wtpHash->ctrl_port = 8888;
+		add_ip_ctrl_port_hash_entry(wtpHash);
+		wtpHash->wtpInfo = &wtpInfo;
+		wtpHash->wtpInfo->wtp_hash_entry = wtpHash;
+		wtpHash->wtpInfo->ws = &session;
+	}
+
+	void InitWtpProfileInfo() {
+		memset(&wtpProfileInfo, 0, sizeof(wtpProfileInfo));
+	}
+
+	void InitWlanInfo() {
+		memset(&wlanInfo, 0, sizeof(wlanInfo));
+	}
+
 protected:
 	cw_msg_t msg;
 	struct hostapd_data hapd;
@@ -79,6 +128,13 @@ private:
 	struct hapd_interfaces interfaces;
 	struct ieee80211_mgmt mgmt;
 	struct hostapd_bss_config config;
+	cwAccountCtx_t context;
+	capwap_wtp_t wtp;
+	wtp_hash_t* wtpHash;
+	cwWtpSession_t session;
+	cwWtpInfo_t wtpInfo;
+	cwWtpprofInfo_t wtpProfileInfo;
+	cwWlanInfo_t wlanInfo;
 	u8 dest[6];
 	u8 source[6];
 };
