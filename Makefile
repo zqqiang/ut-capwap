@@ -15,6 +15,7 @@
 # Points to the root of Google Test, relative to where this file is.
 # Remember to tweak this if you move this file.
 GTEST_DIR = lib/gtest-1.7.0
+MOCKCPP_DIR = lib/mockcpp-2.6/lib
 
 # Where to find user code.
 USER_DIR = ../..
@@ -24,6 +25,7 @@ UT_DIR = src
 # Set Google Test's header directory as a system directory, such that
 # the compiler doesn't generate warnings in Google Test headers.
 CPPFLAGS += -isystem $(GTEST_DIR)/include
+CPPFLAGS += -isystem $(MOCKCPP_DIR)/include
 
 # Flags passed to the C++ compiler.
 CXXFLAGS += -g -Wall -Wextra -pthread -DCAPWAP
@@ -37,6 +39,8 @@ TESTS = ut
 # definition.
 GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
                 $(GTEST_DIR)/include/gtest/internal/*.h
+
+MOCKCPP_HEADERS = $(MOCKCPP_DIR)/include/mockcpp/*.h                
 
 # House-keeping build targets.
 
@@ -86,8 +90,8 @@ CAPWAP_OBJ = $(CAPWAP_DIR)/cwDummy.o $(CAPWAP_DIR)/ac/libcwac.o \
 
 CAPWAPFLAGS = -I$(CAPWAP_DIR)/include -I$(CAPWAP_DIR)/hostapd -I$(USER_DIR)/include
 
-all_ut.o : $(UT_DIR)/*.cc $(GTEST_HEADERS)
+all_ut.o : $(UT_DIR)/*.cc $(GTEST_HEADERS) $(MOCKCPP_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CAPWAPFLAGS) $(GCOVFLAGS) -c $(UT_DIR)/all_ut.cc
 
-ut : all_ut.o $(CAPWAP_OBJ) gtest_main.a
+ut : all_ut.o $(CAPWAP_OBJ) gtest_main.a $(MOCKCPP_DIR)/lib/libmockcpp.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(GCOVFLAGS) -lm -lmysqlclient -L/usr/lib64/mysql -L/usr/lib64/ -ldl -lpthread $^ -o $@

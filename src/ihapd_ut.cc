@@ -1,4 +1,5 @@
 #include "gtest/gtest.h"
+#include "mockcpp/mokc.h"
 
 #include "hostapd.h"
 #include "ieee802_11.h"
@@ -36,6 +37,8 @@ protected:
 	virtual void TearDown()	{
 		memset(&msg, 0, sizeof(msg));
 		memset(&hapd, 0, sizeof(hapd));
+
+		GlobalMockObject::verify();
 	}
 
 protected:
@@ -166,5 +169,7 @@ private:
 
 TEST_F(IhapdTest, ShouldAddUnknowStaSuccess)
 {
+	MOCKER(sendto).expects(once());
+
 	cw_hapd_80211_input(&hapd, msg.data, msg.len);
 }
