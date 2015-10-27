@@ -21,9 +21,12 @@ protected:
 		InitConf();
 		InitMgmt();
 		InitMsg();
+		InitHapdConfig();
 		InitHapd();
 		InitCallback();
 		InitWtpInfo();
+		InitStaInfo();
+		InitAccountContext();
 		InitWtpHash();
 		InitSession();
 		InitWtpProfileInfo();
@@ -61,6 +64,8 @@ protected:
 
 		hapd.wtpAddr = 0xffffffff;
 		hapd.wtpPort = 8888;
+
+		hapd.iconf = &hapdConfig;
 	}
 
 	void InitMgmt() {
@@ -90,6 +95,7 @@ protected:
 		memset(&session, 0, sizeof(session));
 		session.wtpcfg = &wtpInfo;
 		session.wtp_hash_entry = wtpHash;
+		session.account_ctx = &accountContext;
 	}
 
 	void InitWtpInfo() {
@@ -100,9 +106,8 @@ protected:
 
 	void InitWtpHash() {
 		wtp_hash_tree_init();
-		memset(&context, 0, sizeof(context));
 		memset(&wtp, 0, sizeof(wtp));
-		wtpHash = cwAcAddWtpHashEntry(&context, &wtp, 1);
+		wtpHash = cwAcAddWtpHashEntry(&accountContext, &wtp, 1);
 		wtpHash->ip = 0xffffffff;
 		wtpHash->ctrl_port = 8888;
 		add_ip_ctrl_port_hash_entry(wtpHash);
@@ -111,12 +116,30 @@ protected:
 		wtpHash->wtpInfo->ws = &session;
 	}
 
+	void InitAccountContext() {
+		memset(&accountContext, 0, sizeof(accountContext));
+		accountContext.cw_sta_tree = RB_ROOT(ETH_ALEN, 0, 0);
+		staInfo.rb_key1 = staInfo.macAddr;
+		staInfo.rb_key2 = NULL;
+		staInfo.rb_key3 = NULL;
+		cw_rb_insert(&(accountContext.cw_sta_tree), &staInfo);
+	}
+
 	void InitWtpProfileInfo() {
 		memset(&wtpProfileInfo, 0, sizeof(wtpProfileInfo));
 	}
 
 	void InitWlanInfo() {
 		memset(&wlanInfo, 0, sizeof(wlanInfo));
+	}
+
+	void InitStaInfo() {
+		memset(&staInfo, 0, sizeof(staInfo));
+		memcpy(staInfo.macAddr, source, sizeof(source));
+	}
+
+	void InitHapdConfig() {
+		memset(&hapdConfig, 0, sizeof(hapdConfig));
 	}
 
 protected:
@@ -128,13 +151,15 @@ private:
 	struct hapd_interfaces interfaces;
 	struct ieee80211_mgmt mgmt;
 	struct hostapd_bss_config config;
-	cwAccountCtx_t context;
+	cwAccountCtx_t accountContext;
 	capwap_wtp_t wtp;
 	wtp_hash_t* wtpHash;
 	cwWtpSession_t session;
 	cwWtpInfo_t wtpInfo;
 	cwWtpprofInfo_t wtpProfileInfo;
 	cwWlanInfo_t wlanInfo;
+	cwStaInfo_t staInfo;
+	struct hostapd_config hapdConfig;
 	u8 dest[6];
 	u8 source[6];
 };
