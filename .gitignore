@@ -3,4 +3,5 @@
 *.o
 *.a
 *.gcno
+*.gcda
 ut
