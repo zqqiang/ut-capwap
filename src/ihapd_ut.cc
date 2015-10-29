@@ -5,6 +5,7 @@
 #include "ieee802_11.h"
 #include "cwAC.h"
 #include "wtphtree.h"
+#include "hw_features.h"
 
 extern "C"
 {
@@ -58,6 +59,7 @@ protected:
 
 		memset(&iface, 0, sizeof(iface));
 		iface.interfaces = &interfaces;
+		iface.current_mode = &hapdHwMode;
 
 		hapd.iface = &iface;
 
@@ -99,6 +101,8 @@ protected:
 	void InitConf() {
 		memset(&config, 0, sizeof(config));
 		config.max_num_sta = 100;
+		memcpy(config.ssid.ssid, "zqq-ssid-1", strlen("zqq-ssid-1"));
+		config.ssid.ssid_len = strlen("zqq-ssid-1");
 	}
 
 	void InitCallback() {
@@ -156,6 +160,10 @@ protected:
 		memset(&hapdConfig, 0, sizeof(hapdConfig));
 	}
 
+	void InitHapdHwMode() {
+		memset(&hapdHwMode, 0, sizeof(hapdHwMode));
+	}
+
 protected:
 	cw_msg_t msg;
 	struct hostapd_data hapd;
@@ -174,12 +182,16 @@ private:
 	cwWlanInfo_t wlanInfo;
 	cwStaInfo_t staInfo;
 	struct hostapd_config hapdConfig;
+	struct hostapd_hw_modes hapdHwMode;
 	u8 dest[6];
 	u8 source[6];
 };
 
 TEST_F(IhapdTest, ShouldAddUnknowStaSuccess)
 {
-	MOCKER(sendto).expects(once());
+	MOCKER(sendto)
+	.expects(once())
+	.will(returnValue(10));
+
 	cw_hapd_80211_input(&hapd, msg.data, msg.len);
 }
