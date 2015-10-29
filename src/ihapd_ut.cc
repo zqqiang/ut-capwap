@@ -187,11 +187,18 @@ private:
 	u8 source[6];
 };
 
+bool PktCheck(cwIpcMsg_t * packet)
+{
+	return true;
+}
+
 TEST_F(IhapdTest, ShouldAddUnknowStaSuccess)
 {
 	MOCKER(sendto)
-	.expects(once())
-	.will(returnValue(10));
+	// .expects(once())
+	.stubs()
+	.with(any(), checkWith(PktCheck))
+	.will(returnValue(0));
 
 	cw_hapd_80211_input(&hapd, msg.data, msg.len);
 }
