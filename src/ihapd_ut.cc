@@ -53,6 +53,7 @@ protected:
 
 	void InitHapd() {
 		memset(&hapd, 0, sizeof(hapd));
+		hapd.account = 401;
 
 		memset(&interfaces, 0, sizeof(interfaces));
 		interfaces.log_enable = 0;
@@ -165,8 +166,43 @@ protected:
 	}
 
 protected:
+	void buildMockMsg() {
+		memset(&mockMsg, 0, sizeof(mockMsg));
+
+		mockMsg.wtp_hash_entry = NULL;
+		mockMsg.account = hapd.account;
+		mockMsg.wtpAddr = hapd.wtpAddr;
+		mockMsg.wtpPort = hapd.wtpPort;
+
+		cwIpcStaInfo_t *s = (cwIpcStaInfo_t *)mockMsg.data;
+		s->account = hapd.account;
+		s->wtpAddr = hapd.wtpAddr;
+		s->wtpPort = hapd.wtpPort;
+		s->rId = hapd.conf->radioId;
+		s->aId = 1;
+		s->flags = 3;
+		s->mesh_vap = 0;
+		s->band = 3;
+
+		memcpy(s->bssid, hapd.own_addr, ETH_ALEN);
+		memcpy(s->macAddr, source, ETH_ALEN);
+		s->cap = 33825;
+		s->wId = hapd.conf->wlanId;
+		s->rate_num = 12;
+
+		u8 rates[] = {0x82, 0x84, 0x8b, 0x96, 0x0c, 0x12, 0x18, 0x24, 0x30, 0x48, 0x60, 0x6c};
+		memcpy(s->rates, rates, 12);
+		s->reason = 0;
+		s->vName_len = strlen(hapd.conf->ssid.ssid);
+		memcpy(s->vName, hapd.conf->ssid.ssid, s->vName_len);
+		mockMsg.type = 256;
+	}
+
+protected:
 	cw_msg_t msg;
 	struct hostapd_data hapd;
+	wtp_hash_t* wtpHash;
+	cwIpcMsg_t mockMsg;
 
 private:
 	struct hostapd_iface iface;
@@ -175,7 +211,6 @@ private:
 	struct hostapd_bss_config config;
 	cwAccountCtx_t accountContext;
 	capwap_wtp_t wtp;
-	wtp_hash_t* wtpHash;
 	cwWtpSession_t session;
 	cwWtpInfo_t wtpInfo;
 	cwWtpprofInfo_t wtpProfileInfo;
@@ -187,17 +222,13 @@ private:
 	u8 source[6];
 };
 
-bool PktCheck(cwIpcMsg_t * packet)
-{
-	return true;
-}
-
 TEST_F(IhapdTest, ShouldAddUnknowStaSuccess)
 {
+	buildMockMsg();
+
 	MOCKER(sendto)
-	// .expects(once())
-	.stubs()
-	.with(any(), checkWith(PktCheck))
+	.expects(once())
+	.with(any(), mirror(&mockMsg, 1))
 	.will(returnValue(0));
 
 	cw_hapd_80211_input(&hapd, msg.data, msg.len);
