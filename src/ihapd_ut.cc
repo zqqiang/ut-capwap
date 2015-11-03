@@ -13,6 +13,7 @@ extern "C"
 	int cw_sta_load_chk(account_t account, uint32_t wtpAddr, uint32_t wtpPort,
 	                    uint8_t rId, uint8_t wId, uint8_t *sta_mac, uint8_t mesh_sta, int *band_5G);
 	wtp_hash_t* cwAcAddWtpHashEntry(cwAccountCtx_t *account_ctx, capwap_wtp_t *wtp, int add_to_hash);
+	void cwHapdSendMsgToLocal(cwIpcMsg_t *msg, int msgLen);
 }
 
 class IhapdTest : public ::testing::Test
@@ -201,8 +202,10 @@ protected:
 protected:
 	cw_msg_t msg;
 	struct hostapd_data hapd;
-	wtp_hash_t* wtpHash;
 	cwIpcMsg_t mockMsg;
+
+public:
+	wtp_hash_t* wtpHash;
 
 private:
 	struct hostapd_iface iface;
@@ -222,13 +225,28 @@ private:
 	u8 source[6];
 };
 
+#include <iostream>
+
+struct PacketChecker
+{
+	PacketChecker(IhapdTest *self) : that(self) {}
+	bool operator()(cwIpcMsg_t *packet) {
+		if (packet->wtp_hash_entry != that->wtpHash) {
+			std::cout << "packet->wtp_hash_entry != that->wtpHash" <<std::endl;
+			return false;
+		}
+		return true;
+	}
+	IhapdTest *that;
+};
+
 TEST_F(IhapdTest, ShouldAddUnknowStaSuccess)
 {
 	buildMockMsg();
 
-	MOCKER(sendto)
+	MOCKER(cwHapdSendMsgToLocal)
 	.expects(once())
-	.with(any(), mirror(&mockMsg, 1))
+	.with(checkWith(PacketChecker(this)))
 	.will(returnValue(0));
 
 	cw_hapd_80211_input(&hapd, msg.data, msg.len);
