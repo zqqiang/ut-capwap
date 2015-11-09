@@ -24,13 +24,13 @@ protected:
 		InitConf();
 		InitMgmt();
 		InitMsg();
+		InitWtpHash();
 		InitHapdConfig();
 		InitHapd();
 		InitCallback();
 		InitWtpInfo();
 		InitStaInfo();
 		InitAccountContext();
-		InitWtpHash();
 		InitSession();
 		InitWtpProfileInfo();
 		InitWlanInfo();
@@ -63,6 +63,7 @@ protected:
 		iface.interfaces = &interfaces;
 		iface.current_mode = &hapdHwMode;
 		iface.current_rates = NULL;
+		iface.wtp_hash_entry = wtpHash;
 
 		hapd.iface = &iface;
 
