@@ -83,7 +83,7 @@ gtest_main.a : gtest-all.o gtest_main.o
 CAPWAP_DIR = $(USER_DIR)/capwap
 
 CAPWAP_OBJ = $(CAPWAP_DIR)/cwDummy.o $(CAPWAP_DIR)/ac/libcwac.o \
-		 $(CAPWAP_DIR)/util/libutils.o $(CAPWAP_DIR)/hostapd/libwifi.o \
+		 $(CAPWAP_DIR)/util/libutils.o \
 		 $(CAPWAP_DIR)/../utils/libutils2.o $(CAPWAP_DIR)/./json/libjson.o \
 		 $(CAPWAP_DIR)/./jsonrpc/libjsonrpc.o $(CAPWAP_DIR)/./fcldd/libfcldd.o \
 		 $(CAPWAP_DIR)/../openssl/libssl.a $(CAPWAP_DIR)/../openssl/libcrypto.a

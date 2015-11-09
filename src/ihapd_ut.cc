@@ -5,7 +5,7 @@
 #include "ieee802_11.h"
 #include "cwAC.h"
 #include "wtphtree.h"
-#include "hw_features.h"
+#include "cwPktUtils.h"
 
 extern "C"
 {
@@ -13,7 +13,6 @@ extern "C"
 	int cw_sta_load_chk(account_t account, uint32_t wtpAddr, uint32_t wtpPort,
 	                    uint8_t rId, uint8_t wId, uint8_t *sta_mac, uint8_t mesh_sta, int *band_5G);
 	wtp_hash_t* cwAcAddWtpHashEntry(cwAccountCtx_t *account_ctx, capwap_wtp_t *wtp, int add_to_hash);
-	void cwHapdSendMsgToLocal(cwIpcMsg_t *msg, int msgLen);
 }
 
 class IhapdTest : public ::testing::Test
@@ -62,6 +61,7 @@ protected:
 		memset(&iface, 0, sizeof(iface));
 		iface.interfaces = &interfaces;
 		iface.current_mode = &hapdHwMode;
+		iface.current_rates = NULL;
 
 		hapd.iface = &iface;
 
@@ -108,6 +108,9 @@ protected:
 	}
 
 	void InitCallback() {
+		cw_hapd_message_sta = cwAc_log_sta;
+		cw_hapd_add_cw_hdr = cw_add_cw_hdr;
+		cw_hapd_sendto = cwAcWsTxPkt;
 		cw_hapd_sta_chk = cw_sta_load_chk;
 	}
 
@@ -232,7 +235,7 @@ struct PacketChecker
 	PacketChecker(IhapdTest *self) : that(self) {}
 	bool operator()(cwIpcMsg_t *packet) {
 		if (packet->wtp_hash_entry != that->wtpHash) {
-			std::cout << "packet->wtp_hash_entry != that->wtpHash" <<std::endl;
+			std::cout << "packet->wtp_hash_entry != that->wtpHash" << std::endl;
 			return false;
 		}
 		return true;
@@ -244,9 +247,9 @@ TEST_F(IhapdTest, ShouldAddUnknowStaSuccess)
 {
 	buildMockMsg();
 
-	MOCKER(cwHapdSendMsgToLocal)
+	MOCKER(sendto)
 	.expects(once())
-	.with(checkWith(PacketChecker(this)))
+	.with(any())
 	.will(returnValue(0));
 
 	cw_hapd_80211_input(&hapd, msg.data, msg.len);
