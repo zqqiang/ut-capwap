@@ -251,7 +251,8 @@ TEST_F(IhapdTest, ShouldAddUnknowStaSuccess)
 	buildMockMsg();
 
 	MOCKER(cwHapdSendMsgToLocal)
-	.expects(once())
+	// .expects(once())
+	.defaults()
 	.with(checkWith(PacketChecker(this)))
 	.will(returnValue(0));
 
