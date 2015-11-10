@@ -24,14 +24,14 @@ protected:
 		InitConf();
 		InitMgmt();
 		InitMsg();
+		InitSession();
+		InitWtpInfo();
 		InitWtpHash();
 		InitHapdConfig();
 		InitHapd();
 		InitCallback();
-		InitWtpInfo();
 		InitStaInfo();
 		InitAccountContext();
-		InitSession();
 		InitWtpProfileInfo();
 		InitWlanInfo();
 	}
@@ -120,7 +120,7 @@ protected:
 	void InitSession() {
 		memset(&session, 0, sizeof(session));
 		session.wtpcfg = &wtpInfo;
-		session.wtp_hash_entry = wtpHash;
+		// session.wtp_hash_entry = wtpHash;
 		session.account_ctx = &accountContext;
 	}
 
@@ -128,6 +128,7 @@ protected:
 		memset(&wtpInfo, 0, sizeof(wtpInfo));
 		wtpInfo.wtpprof_cfg = &wtpProfileInfo;
 		wtpInfo.wlan_cfg[0][0] = &wlanInfo;
+		wtpInfo.ws = &session;
 	}
 
 	void InitWtpHash() {
@@ -136,10 +137,10 @@ protected:
 		wtpHash = cwAcAddWtpHashEntry(&accountContext, &wtp, 1);
 		wtpHash->ip = 0xffffffff;
 		wtpHash->ctrl_port = 8888;
-		add_ip_ctrl_port_hash_entry(wtpHash);
 		wtpHash->wtpInfo = &wtpInfo;
-		wtpHash->wtpInfo->wtp_hash_entry = wtpHash;
-		wtpHash->wtpInfo->ws = &session;
+		add_ip_ctrl_port_hash_entry(wtpHash);
+		
+		session.wtp_hash_entry = wtpHash;
 	}
 
 	void InitAccountContext() {
@@ -251,8 +252,7 @@ TEST_F(IhapdTest, ShouldAddUnknowStaSuccess)
 	buildMockMsg();
 
 	MOCKER(cwHapdSendMsgToLocal)
-	// .expects(once())
-	.defaults()
+	.expects(once())
 	.with(checkWith(PacketChecker(this)))
 	.will(returnValue(0));
 
