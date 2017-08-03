@@ -5,3 +5,4 @@
 *.gcno
 *.gcda
 ut
+/googletest
