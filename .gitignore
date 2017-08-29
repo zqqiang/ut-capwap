@@ -6,3 +6,5 @@
 *.gcda
 ut
 /googletest
+*gradle
+gradlew*
